@@ -1,3 +1,5 @@
 # My new ignore rule
 # Another ignore rule
 node_modules
+.env
+/vendor
