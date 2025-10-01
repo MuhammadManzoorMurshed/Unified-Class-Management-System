@@ -95,6 +95,7 @@ jobs:
             echo "DB_DATABASE=ucms_test"
             echo "DB_USERNAME=ucms_user"
             echo "DB_PASSWORD=secret"
+            echo "CACHE_DRIVER=file"
           } >> .env
           php -r "echo file_get_contents('.env');"
 
@@ -107,11 +108,11 @@ jobs:
           done
           mysql -h127.0.0.1 -P3306 -uucms_user -psecret -e "CREATE DATABASE IF NOT EXISTS ucms_test;"
 
-      - name: Clear/Cache config
-        run: php artisan optimize:clear
-
       - name: Run migrations (fresh)
         run: php artisan migrate:fresh --force
+
+      - name: Clear/Cache config
+        run: php artisan optimize:clear
 
       - name: Run database seeders (optional)
         if: ${{ hashFiles('database/seeders/DatabaseSeeder.php') != '' }}
