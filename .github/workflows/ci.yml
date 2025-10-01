@@ -1,0 +1,137 @@
+name: laravel-tests
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+      - "**.md"
+  pull_request:
+    branches: [ "main", "develop" ]
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+      - "**.md"
+
+jobs:
+  phpunit:
+    name: PHP ${{ matrix.php }} - MySQL 8
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ucms_test
+          MYSQL_USER: ucms_user
+          MYSQL_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    strategy:
+      matrix:
+        php: ["8.2", "8.3"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo_mysql, dom, json, fileinfo, curl, gd, xml, zip, bcmath
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Setup Node (optional)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Cache Composer (vendor)
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ matrix.php }}-vendor-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php }}-vendor-
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install Node deps (only if present)
+        if: ${{ hashFiles('package.json') != '' }}
+        run: npm ci
+
+      - name: Prepare environment (.env)
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+          sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env
+          sed -i 's/^DB_DATABASE=.*/DB_DATABASE=ucms_test/' .env
+          sed -i 's/^DB_USERNAME=.*/DB_USERNAME=ucms_user/' .env
+          sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=secret/' .env
+          sed -i 's/^MAIL_MAILER=.*/MAIL_MAILER=log/' .env
+          sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env
+          sed -i 's/^APP_DEBUG=.*/APP_DEBUG=true/' .env
+          sed -i 's/^APP_ENV=.*/APP_ENV=testing/' .env
+
+      - name: Wait for MySQL (max ~60s)
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h127.0.0.1 -P3306 -uucms_user -psecret && break
+            echo "Waiting for MySQL... attempt $i"
+            sleep 2
+          done
+          mysql -h127.0.0.1 -P3306 -uucms_user -psecret -e "CREATE DATABASE IF NOT EXISTS ucms_test;"
+
+      - name: Run migrations (fresh)
+        run: php artisan migrate:fresh --force
+
+      - name: Run database seeders (optional)
+        if: ${{ hashFiles('database/seeders/DatabaseSeeder.php') != '' }}
+        run: php artisan db:seed --force
+
+      - name: PHPStan (Larastan) - optional
+        if: ${{ hashFiles('phpstan.neon') != '' || hashFiles('phpstan.neon.dist') != '' }}
+        run: |
+          composer require --dev larastan/larastan phpstan/phpstan
+          ./vendor/bin/phpstan analyse --memory-limit=2G
+
+      - name: Run tests (with coverage)
+        run: |
+          mkdir -p coverage
+          php artisan test --stop-on-failure --parallel --coverage-clover coverage/clover.xml
+
+      - name: Upload logs & coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-php-${{ matrix.php }}
+          path: |
+            storage/logs/*.log
+            coverage/**
+          retention-days: 14
+
+  security-audit:
+    name: Composer Security Audit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: composer audit --no-interaction --locked
