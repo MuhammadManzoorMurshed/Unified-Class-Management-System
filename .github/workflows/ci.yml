@@ -121,7 +121,7 @@ jobs:
       - name: Run tests (with coverage)
         run: |
           mkdir -p coverage
-          php artisan test --stop-on-failure --parallel --coverage-clover coverage/clover.xml
+          php artisan test --stop-on-failure --coverage-clover coverage/clover.xml
 
       - name: Upload logs & coverage artifacts
         if: always()
