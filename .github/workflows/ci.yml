@@ -2,17 +2,17 @@ name: laravel-tests
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ['**']              # সব ব্রাঞ্চ
     paths-ignore:
-      - "README.md"
-      - "docs/**"
-      - "**.md"
+      - 'README.md'
+      - 'docs/**'
+      - '**.md'
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ['**']              # যে-কোনো PR
     paths-ignore:
-      - "README.md"
-      - "docs/**"
-      - "**.md"
+      - 'README.md'
+      - 'docs/**'
+      - '**.md'
 
 jobs:
   phpunit:
