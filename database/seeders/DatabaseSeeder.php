@@ -2,22 +2,24 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // রোল → অ্যাডমিন → (ঐচ্ছিক) স্যাম্পল ইউজার
+        $this->call([
+            RolesTableSeeder::class,
+            AdminUserSeeder::class,
+            SampleUsersSeeder::class, // চাইলে এটা বাদও দিতে পারেন
         ]);
+
+        // যদি পুরনো factory-based Test User রাখতে চান, এখানে রাখতে পারেন
+        // \App\Models\User::factory()->create([
+        //     'name'  => 'Test User',
+        //     'email' => 'test@example.com',
+        //     'role_id' => 3, // Student
+        // ]);
     }
 }
