@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\EmailVerificationPromptController;
 use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
 Route::get('/email/verify', [EmailVerificationPromptController::class, '__invoke'])
     ->middleware(['auth'])
     ->name('verification.notice');
