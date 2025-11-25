@@ -5,20 +5,22 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up(): void {
+    public function up()
+    {
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('action',200);
-            $table->string('table_name',100);
-            $table->unsignedBigInteger('record_id');
-            $table->string('ip_address',45);
-            $table->json('old_values')->nullable();
-            $table->json('new_values')->nullable();
+            $table->string('action'); // 'class.join', 'class.removeMember' ইত্যাদি
+            $table->string('entity_type'); // 'Class', 'Enrollment'
+            $table->unsignedBigInteger('entity_id'); // ক্লাস বা এনরোলমেন্ট ID
+            $table->json('meta')->nullable(); // অতিরিক্ত ডেটা
+            $table->unsignedBigInteger('user_id'); // ইউজারের ID
+            $table->string('ip_address'); // ইউজারের আইপি অ্যাড্রেস
             $table->timestamps();
         });
     }
-    public function down(): void {
+
+    public function down(): void
+    {
         Schema::dropIfExists('audit_logs');
     }
 };
