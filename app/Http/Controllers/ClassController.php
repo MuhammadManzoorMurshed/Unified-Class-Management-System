@@ -15,10 +15,17 @@ class ClassController extends Controller
 {
     public function show($id)
     {
-        $class = Classes::findOrFail($id);
-        return new ClassResource($class); // ClassResource দিয়ে রেসপন্স ফেরত দিন
+        $class = Classes::with([
+            'teacher:id,name,email',
+            // enrolled active students + তাদের user
+            'activeEnrollments.user:id,name,email'
+        ])
+            ->withCount(['activeEnrollments as member_count'])
+            ->findOrFail($id);
+
+        return new ClassResource($class);
     }
-    
+
     public function audit($action, $entityId, $meta = null)
     {
         // লগ তৈরি করা হচ্ছে
@@ -42,15 +49,18 @@ class ClassController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'subject' => 'required|string|max:255',
+            'session' => 'required|string|max:100',
         ]);
 
         $class = Classes::create([
             'name' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'teacher_id' => Auth::id() ?: null,
-            'code' => Str::slug($validated['title']) . '-' . Str::random(4),
-            'subject' => $validated['description'] ? substr($validated['description'], 0, 255) : 'General',
-            'semester' => 'Fall',
+            'teacher_id' => auth('api')->id() ?: null,
+            // 'code' => Str::slug($validated['title']) . '-' . Str::random(4),
+            'code' => 'CSE-' . Str::upper(Str::random(5)),
+            'subject' => $validated['subject'],
+            'semester' => $validated['session'],
             'year' => date('Y'),
             'is_active' => true,
             'max_students' => 50,
@@ -141,5 +151,32 @@ class ClassController extends Controller
         $this->audit('class.removeMember', $classId, ['userId' => $userId]);
 
         return response()->json(['message' => 'Member removed']);
+    }
+
+    public function myClasses(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $classes = Classes::query()
+            ->with('teacher:id,name,email')
+            ->withCount(['activeEnrollments as member_count'])
+            ->where(function ($q) use ($user) {
+                $q->where('teacher_id', $user->id)
+                    ->orWhereHas('enrollments', function ($sub) use ($user) {
+                        $sub->where('user_id', $user->id)
+                            ->where('status', 'active');
+                    });
+            })
+            ->where('is_active', true)
+            ->orderByDesc('created_at')
+            ->get()
+            ->unique('id')
+            ->values();
+
+        return ClassResource::collection($classes);
     }
 }

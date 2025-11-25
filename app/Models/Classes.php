@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Enrollment;
 
 class Classes extends Model
 {
@@ -45,5 +46,15 @@ class Classes extends Model
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'class_id');
+    }
+
+    public function activeEnrollments()
+    {
+        return $this->enrollments()->where('status', 'active');
     }
 }

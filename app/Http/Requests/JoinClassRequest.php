@@ -26,7 +26,7 @@ class JoinClassRequest extends FormRequest
     {
         return [
             // কোডটি স্ট্রিং এবং 6 অক্ষরের মধ্যে হতে হবে
-            'code' => 'required|string|size:8|exists:classes,code', // ক্লাস কোড যাচাই
+            'code' => 'required|string|size:9|exists:classes,code', // ক্লাস কোড যাচাই
         ];
     }
 }

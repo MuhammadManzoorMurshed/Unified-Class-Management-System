@@ -31,10 +31,5 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('login', function (Request $request) {
             return Limit::perMinute(5)->by($request->email . $request->ip());
         });
-
-        // 🔹 Step 4: Optional custom email verify response
-        Fortify::verifyEmailView(function () {
-            return response()->json(['message' => 'Email verified successfully.'], 200);
-        });
     }
 }

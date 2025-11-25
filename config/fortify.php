@@ -14,9 +14,9 @@ return [
     'features' => [
         Laravel\Fortify\Features::registration(),
         Laravel\Fortify\Features::resetPasswords(),
-        Laravel\Fortify\Features::emailVerification(),
         Laravel\Fortify\Features::updateProfileInformation(),
         Laravel\Fortify\Features::updatePasswords(),
+        Laravel\Fortify\Features::resetPasswords(),
     ],
 
     // ❹ লিমিটারস (ঐচ্ছিক কিন্তু ভালো প্র্যাকটিস)
@@ -25,4 +25,3 @@ return [
         'two-factor' => null,
     ],
 ];
-

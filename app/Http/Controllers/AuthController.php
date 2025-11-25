@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Models\EmailVerification;
 use Illuminate\Http\Request;
@@ -19,20 +20,29 @@ class AuthController extends Controller
     // ======================================================
     public function register(Request $req)
     {
+        // ১) role_id আর ইউজার ইনপুট থেকে নেবো না
         $req->validate([
             'name'      => 'required|string|max:120',
             'email'     => 'required|email|unique:users,email',
             'password'  => 'required|confirmed|min:8',
-            'role_id'   => 'required|exists:roles,id',
             'phone'     => 'nullable|string|max:20',
         ]);
 
-        // 🧩 Create user
+        // ২) Student role_id অটো বের করো
+        $studentRoleId = Role::where('role_name', 'Student')->value('id');
+
+        if (!$studentRoleId) {
+            return response()->json([
+                'message' => 'Student role not found. Please run RolesTableSeeder.'
+            ], 500);
+        }
+
+        // ৩) সবসময় Student হিসেবেই ইউজার তৈরি করো
         $user = User::create([
             'name'     => $req->name,
             'email'    => $req->email,
             'password' => Hash::make($req->password),
-            'role_id'  => $req->role_id,
+            'role_id'  => $studentRoleId,
             'phone'    => $req->phone,
             'status'   => 'active',
         ]);
