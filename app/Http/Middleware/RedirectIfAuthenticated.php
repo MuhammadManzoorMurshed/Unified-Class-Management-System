@@ -10,8 +10,11 @@ class RedirectIfAuthenticated
 {
     public function handle(Request $request, Closure $next, $guard = null)
     {
-        if (Auth::guard($guard)->check()) {
-            return redirect('/home');
+        // Only consider session-based `web` guard for redirecting guests.
+        // Prevents JWT/API-only authentication from causing a redirect to the web register/login pages.
+        if (Auth::guard('web')->check()) {
+            // Prefer dashboard route for this app shell
+            return redirect('/dashboard');
         }
 
         return $next($request);

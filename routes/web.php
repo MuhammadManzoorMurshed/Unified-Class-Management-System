@@ -3,24 +3,28 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Http\Controllers\DashboardController;
 
 Route::redirect('/', '/login');
 
 /*
 |--------------------------------------------------------------------------
-| Logout Route (Correct)
+| Logout Route
 |--------------------------------------------------------------------------
 */
 Route::post('/logout', function (Request $request) {
+    // শুধু web guard এর session logout
     Auth::guard('web')->logout();
+
     $request->session()->invalidate();
     $request->session()->regenerateToken();
+
     return redirect()->route('login');
 })->name('logout')->middleware('web');
 
 /*
 |--------------------------------------------------------------------------
-| Public Auth Views
+| Public Auth Views (guest only)
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
@@ -31,22 +35,11 @@ Route::middleware('guest')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| PROTECTED (AUTH REQUIRED) APP ROUTES
+| APP SHELL ROUTES (SPA, NO auth:web)
 |--------------------------------------------------------------------------
+| এগুলো শুধু Blade শেল লোড করবে।
+| আসল ডেটা আসবে /api/v1/... থেকে (JWT token সহ).
 */
-// Route::middleware(['auth:web'])->group(function () {
-
-//     Route::view('/dashboard', 'dashboard')->name('dashboard');
-
-//     // My Classes
-//     Route::view('/classes', 'classes.index')->name('classes.index');
-
-//     // Class Workspace (dynamic class page)
-//     Route::view('/classes/{id}', 'classes.show')->name('classes.show');
-// });
-
-// PROTECTED (AUTH REQUIRED) APP ROUTES
-// আপাতত এখানে auth:web সরিয়ে ফেলি, কারণ আমরা JWT/token দিয়ে গার্ড করছি ফ্রন্টএন্ডে
 Route::view('/dashboard', 'dashboard')->name('dashboard');
 Route::view('/classes', 'classes.index')->name('classes.index');
 Route::view('/classes/{id}', 'classes.show')->name('classes.show');

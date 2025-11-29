@@ -12,6 +12,8 @@ use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\examController;
 use App\Http\Controllers\MarksController;
+use App\Http\Controllers\ClassChatController;
+use App\Http\Controllers\DashboardController;
 
 // 🔹 Fortify email verification route
 // Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
@@ -129,9 +131,15 @@ Route::prefix('v1')->middleware('auth:api')->group(function () {
     Route::get('/exams/{exam}/marks', [MarksController::class, 'examMarks'])
         ->middleware('role:Admin,Teacher');
 
-    Route::middleware(['auth:api'])->group(function () {
-        // POST মেথডের জন্য রুট যোগ করুন
-        Route::post('classes/join', [ClassController::class, 'join']);
-    });
-    Route::delete('classes/{classId}/members/{userId}', [ClassController::class, 'removeMember']);
+    // Route::middleware(['auth:api'])->group(function () {
+    //     // POST মেথডের জন্য রুট যোগ করুন
+    //     Route::post('classes/join', [ClassController::class, 'join']);
+    // });
+    // Route::delete('classes/{classId}/members/{userId}', [ClassController::class, 'removeMember']);
+
+    // ---------- CLASS CHATS ROUTES ----------
+    Route::get('/classes/{class}/chats', [ClassChatController::class, 'index']);
+    Route::post('/classes/{class}/chats', [ClassChatController::class, 'store']);
+
+    Route::get('/dashboard', [DashboardController::class, 'summary']);
 });

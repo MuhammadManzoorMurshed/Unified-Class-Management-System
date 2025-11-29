@@ -132,26 +132,42 @@ class ClassController extends Controller
 
     public function removeMember($classId, $userId)
     {
-        // ক্লাস খোঁজা এবং অথরাইজেশন চেক
-        $class = Classes::where('code', $classId)->first();
-        $this->authorize('manage', $class); // শুধুমাত্র Teacher/Admin এই কাজটি করতে পারবে
+        $user = Auth::guard('api')->user();
 
-        // প্রথমে Enrollment রেকর্ড খুঁজে নিন
-        $enrollment = Enrollment::where('class_id', $class->id)
-            ->where('user_id', $userId)
-            ->first(); // প্রথম রেকর্ডটি পেতে first() ব্যবহার করুন
-
-        // যদি Enrollment রেকর্ড না থাকে, কিছু করবেন না
-        if ($enrollment) {
-            // রেকর্ড পাওয়া গেলে, স্ট্যাটাস আপডেট করুন
-            $enrollment->update(['status' => 'dropped']);
+        if (! $user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        // অডিট রেকর্ড তৈরি
-        $this->audit('class.removeMember', $classId, ['userId' => $userId]);
+        // ❌ এখানে বাগ ছিল
+        // $class = Classes::where('code', $classId)->first();
+
+        // ✅ ফিক্সড ভার্সন
+        $class = Classes::find($classId);
+        if (! $class) {
+            return response()->json(['message' => 'Class not found'], 404);
+        }
+
+        // শুধু Teacher/Admin পারবে ক্লাস মেম্বার রিমুভ করতে
+        $this->authorize('manage', $class);
+
+        // teacher নিজেকে রিমুভ করতে পারবে না
+        if ($class->teacher_id == $userId) {
+            return response()->json(['message' => 'You cannot remove the class teacher'], 400);
+        }
+
+        $enrollment = Enrollment::where('class_id', $class->id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (! $enrollment) {
+            return response()->json(['message' => 'Member not found in this class'], 404);
+        }
+
+        $enrollment->delete();
 
         return response()->json(['message' => 'Member removed']);
     }
+
 
     public function myClasses(Request $request)
     {
