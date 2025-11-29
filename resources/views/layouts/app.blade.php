@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>UCMS - @yield('title', 'App')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    @vite('resources/css/app.css')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-900 flex" data-page="@yield('page-id')">
@@ -367,8 +367,6 @@
             @yield('content')
         </main>
     </div>
-
-    @vite('resources/js/app.js')
 </body>
 
 </html>

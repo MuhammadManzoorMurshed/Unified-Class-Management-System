@@ -90,7 +90,7 @@ $classId = request()->route('id') ?? request()->route('class') ?? null;
                 <h3 class="font-semibold text-slate-800 mb-4">Class Details</h3>
                 <div class="space-y-4 text-sm">
                     <div>
-                        <div class="text-slate-500 text-xs font-medium mb-1">Course</div>
+                        <div class="text-slate-500 text-xs font-medium mb-1">Dept.</div>
                         <div id="class-subject" class="font-semibold text-slate-800">–</div>
                     </div>
                     <div>
@@ -154,7 +154,7 @@ $classId = request()->route('id') ?? request()->route('class') ?? null;
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap gap-1 p-2 border-b border-slate-100">
                     <button
-                        class="tab-btn px-4 py-3 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+                        class="tab-btn px-4 py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2"
                         data-tab="posts">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -208,7 +208,7 @@ $classId = request()->route('id') ?? request()->route('class') ?? null;
                         Members
                     </button>
                     <button
-                        class="tab-btn px-4 py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2"
+                        class="tab-btn px-4 py-3 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
                         data-tab="overview">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -259,17 +259,51 @@ $classId = request()->route('id') ?? request()->route('class') ?? null;
                         </div>
                     </div>
 
-                    {{-- Posts Tab --}}
+                    {{-- Posts / Chats Tab --}}
                     <div id="tab-content-posts" class="hidden space-y-4 text-sm text-slate-600">
-                        <h3 class="font-semibold text-slate-800 mb-3">Posts & Announcements</h3>
-                        <div class="text-slate-500">
-                            This section will show class posts and announcements.
+                        <div class="flex items-center justify-between">
+                            <!-- <div>
+                                <h3 class="font-semibold text-slate-800">Class Chats</h3>
+                                <p class="text-[11px] text-slate-500">
+                                    Real-time style discussion space for this class.
+                                </p>
+                            </div> -->
+                        </div>
+
+                        <div
+                            class="flex flex-col h-96  bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                            {{-- Messages area --}}
+                            <div id="chat-messages-wrapper" class="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+                                <div id="chat-messages-list"></div>
+                            </div>
+
+                            {{-- Typing indicator --}}
+                            <div id="chat-typing-indicator" class="hidden px-4 pb-1 text-[11px] text-slate-400">
+                                You are typing…
+                            </div>
+
+                            {{-- Input box --}}
+                            <div class="border-t border-slate-200 p-3 bg-white">
+                                <form id="chat-form" class="flex items-center gap-2">
+                                    @csrf
+                                    <input id="chat-input" type="text" autocomplete="off"
+                                        class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        placeholder="Write a message...">
+                                    <button id="chat-send-btn" type="submit"
+                                        class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-60">
+                                        <span id="chat-send-text">Send</span>
+                                    </button>
+                                </form>
+                                <p id="chat-error" class="hidden mt-1 text-[11px] text-rose-500"></p>
+                            </div>
                         </div>
                     </div>
 
+
+
                     {{-- Attendance Tab --}}
                     <div id="tab-content-attendance" class="hidden space-y-4 text-sm text-slate-600">
-                        <h3 class="font-semibold text-slate-800 mb-3">Attendance</h3>
+                        <!-- <h3 class="font-semibold text-slate-800 mb-3">Attendance</h3> -->
 
                         {{-- এখানে JS থেকে ডায়নামিক কনটেন্ট বসবে --}}
                         <div id="attendance-content" class="space-y-4 text-sm text-slate-600">
@@ -281,8 +315,8 @@ $classId = request()->route('id') ?? request()->route('class') ?? null;
                     <div id="tab-content-assignments" class="hidden space-y-4 text-sm text-slate-600">
                         <div class="flex items-center justify-between gap-3">
                             <div>
-                                <h3 class="font-semibold text-slate-800">Assignments</h3>
-                                <p class="text-xs text-slate-500" id="assignments-subtitle">
+                                <!-- <h3 class="font-semibold text-slate-800">Assignments</h3> -->
+                                <p class=" text-base font-bold text-indigo-500" id="assignments-subtitle">
                                     View assignments and deadlines for this class.
                                 </p>
                             </div>
@@ -304,12 +338,89 @@ $classId = request()->route('id') ?? request()->route('class') ?? null;
                     </div>
 
                     {{-- Exams & Marks Tab --}}
-                    <div id="tab-content-exams" class="hidden space-y-4 text-sm text-slate-600">
-                        <h3 class="font-semibold text-slate-800 mb-3">Exams & Marks</h3>
-                        <div class="text-slate-500">
-                            This section will show exams, marks and performance charts.
+                    <div id="tab-content-exams" class="hidden space-y-4">
+
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <!-- <h3 class="font-semibold text-slate-900 text-sm sm:text-base">Exams & Marks</h3> -->
+                                <p class="text-base text-indigo-500 font-bold" id="exams-marks-subtitle">
+                                    Create and manage exams for this class ➜
+                                </p>
+                            </div>
+
+                            {{-- শুধুমাত্র Teacher/Admin এর জন্য JS থেকে এই বাটন visible হবে --}}
+                            <button id="btn-open-exam-modal" type="button"
+                                class="hidden px-3 py-2 rounded-xl text-xs font-bold border border-indigo-600 text-indigo-600 hover:bg-indigo-700 hover:text-white shadow-sm flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                                New Exam
+                            </button>
                         </div>
+
+                        {{-- TEACHER / ADMIN PANEL --}}
+                        <div id="exams-marks-teacher-panel" class="hidden space-y-4">
+                            {{-- Exam selector --}}
+                            <div class="w-full flex items-center justify-center">
+                                <div class="inline-flex flex-col items-center gap-2">
+                                    <label for="exam-selector"
+                                        class="text-xs font-medium text-slate-600 tracking-wide uppercase">
+                                        Select Exam
+                                    </label>
+                                    <select id="exam-selector"
+                                        class="min-w-[260px] max-w-xs rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option value="" selected disabled>Choose an exam</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Marks entry card --}}
+                            <div id="marks-entry-card"
+                                class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm">
+                                <div
+                                    class="border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <p id="marks-entry-exam-title"
+                                            class="text-sm font-semibold text-slate-900 truncate">
+                                            Selected exam
+                                        </p>
+                                        <p id="marks-entry-exam-meta" class="text-xs text-slate-500 mt-0.5">
+                                            Type • Date • Total marks
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="px-4 pb-4 pt-3 overflow-x-auto">
+                                    <div id="marks-entry-table-wrapper" class="min-w-full">
+                                        {{-- JS will inject the table here --}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- STUDENT PANEL --}}
+                        <div id="exams-marks-student-panel" class="hidden space-y-3">
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+                                <div class="border-b border-slate-200 px-4 py-3">
+                                    <p class="text-sm font-semibold text-slate-900">Your Exam Marks</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">
+                                        Exam-wise marks for this class.
+                                    </p>
+                                </div>
+                                <div class="px-4 pb-4 pt-3 overflow-x-auto">
+                                    <div id="student-marks-table-wrapper" class="min-w-full">
+                                        {{-- JS will inject the table here --}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
+
+
+
 
                     {{-- Files Tab --}}
                     <div id="tab-content-files" class="hidden space-y-4 text-sm text-slate-600">
@@ -321,11 +432,40 @@ $classId = request()->route('id') ?? request()->route('class') ?? null;
 
                     {{-- Members Tab --}}
                     <div id="tab-content-members" class="hidden space-y-4 text-sm text-slate-600">
-                        <h3 class="font-semibold text-slate-800 mb-3">Members</h3>
-                        <div class="text-slate-500">
-                            This section will show class members and their roles.
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <h3 class="font-semibold text-slate-800">Members</h3>
+                                <p class="text-xs text-slate-500">
+                                    View teacher and enrolled students of this class.
+                                </p>
+                            </div>
+                            <div id="members-count" class="text-xs text-slate-500">
+                                Loading members...
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {{-- Teacher Card --}}
+                            <div class="md:col-span-1">
+                                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4"
+                                    id="class-teacher-card">
+                                    <p class="text-xs text-slate-500">Loading teacher info...</p>
+                                </div>
+                            </div>
+
+                            {{-- Students List --}}
+                            <div class="md:col-span-2">
+                                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                                    <h4 class="text-xs font-semibold text-slate-700 mb-3">Enrolled Students</h4>
+                                    <div id="students-list" class="space-y-2 max-h-80 overflow-y-auto">
+                                        <p class="text-xs text-slate-500">Loading students...</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+
                 </div>
             </div>
         </div>
@@ -483,6 +623,87 @@ $classId = request()->route('id') ?? request()->route('class') ?? null;
                 Close
             </button>
         </div>
+    </div>
+</div>
+
+{{-- ★★★ Exam Create Modal ★★★ --}}
+<div id="exam-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/40">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="exam-modal-title" class="font-semibold text-slate-800 text-base">
+                Create Exam
+            </h3>
+            <button type="button" id="exam-modal-close" class="p-1 rounded-full hover:bg-slate-100">
+                <span class="sr-only">Close</span>
+                ✕
+            </button>
+        </div>
+
+        <form id="exam-form" class="space-y-4">
+            @csrf
+
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">
+                    Exam Title <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="title" id="exam_title"
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="e.g. Midterm Exam">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">
+                    Exam Type <span class="text-red-500">*</span>
+                </label>
+                <select name="exam_type" id="exam_type"
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="CT">CT</option>
+                    <option value="Midterm">Midterm</option>
+                    <option value="Final">Final</option>
+                    <option value="Quiz">Quiz</option>
+                    <option value="Viva">Viva</option>
+                    <option value="Lab Performance">Lab Performance</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">
+                        Exam Date <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" name="exam_date" id="exam_date"
+                        class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">
+                        Total Marks <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" name="total_marks" id="exam_total_marks"
+                        class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        min="0" max="999.99" step="0.01" value="100">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">
+                    Description (optional)
+                </label>
+                <textarea name="description" id="exam_description" rows="2"
+                    class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Short note for exam, if needed"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button type="button" id="exam-modal-cancel"
+                    class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs text-slate-700 hover:bg-slate-50">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 shadow-sm">
+                    Save Exam
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

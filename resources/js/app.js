@@ -1,5 +1,10 @@
 import './bootstrap';
 const API_BASE = '/api';
+import './class-show.js';
+import './class-exams-marks.js';
+import './class-chats.js';
+import { initDashboardPage } from './dashboard';
+
 
 function getToken() {
     return localStorage.getItem('ucms_token');
@@ -81,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Page-specific init
     if (page === 'dashboard') {
-        initDashboardPage();
+        initDashboardPage({ apiRequest });
     } else if (page === 'classes.index') {
         initClassesIndexPage();
     } else if (page === 'classes.show') {
@@ -162,8 +167,8 @@ function initRegisterPage() {
 
     // যদি already logged in থাকে, সরাসরি dashboard
     if (getToken()) {
-        window.location.href = '/dashboard';
-        return;
+        // window.location.href = '/dashboard';
+        // return;
     }
 
     form.addEventListener('submit', async (e) => {
@@ -368,11 +373,6 @@ async function loadProfileIntoNav() {
     }
 
     return user;
-}
-
-
-function initDashboardPage() {
-    // চাইলে এখানে পরে quick stats-এর জন্য API কল যোগ করব
 }
 
 // ============ My Classes Page ============

@@ -1,4 +1,7 @@
 // resources/js/class-show.js
+import { initExamsMarksTab } from './class-exams-marks';
+import { initChatsModule } from './class-chats';
+import { initMembersModule } from './class-members';
 
 const API_BASE = '/api';
 
@@ -366,11 +369,11 @@ export default async function initClassShowPage() {
         <div class="space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <div class="text-xs text-slate-500 uppercase tracking-wide">Date</div>
+                    <div class="text-xs text-emerald-600 mb-[2px] uppercase tracking-wide">Date</div>
                     <div class="text-sm font-semibold text-slate-800">${isoDate}</div>
                 </div>
                 <div>
-                    <div class="text-xs text-slate-500 uppercase tracking-wide">Day</div>
+                    <div class="text-xs text-emerald-600 mb-[2px] text-right uppercase tracking-wide">Day</div>
                     <div class="text-sm font-semibold text-slate-800">${dayName}</div>
                 </div>
             </div>
@@ -582,7 +585,7 @@ export default async function initClassShowPage() {
 
         container.innerHTML = `
             <div class="space-y-4">
-                <div class="inline-flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs">
+                <div class="flex justify-center items-center gap-2 rounded-xl bg-slate-100 p-1 text-xs w-1/2 mx-auto">
                     <button
                         type="button"
                         class="att-subtab-btn px-3 py-1.5 rounded-lg font-medium bg-white text-slate-800 shadow-sm"
@@ -837,7 +840,7 @@ export default async function initClassShowPage() {
         if (subtitleEl) {
             subtitleEl.textContent =
                 (currentRole === 'Teacher' || currentRole === 'Admin')
-                    ? 'Create and manage assignments for this class.'
+                ? 'Create and manage assignments for this class ➜'
                     : 'View assignments and deadlines for this class.';
         }
 
@@ -885,7 +888,7 @@ export default async function initClassShowPage() {
 
             const fileLink = a.file_url
                 ? `<a href="${a.file_url}" target="_blank"
-                     class="inline-flex items-center gap-1 text-xs text-indigo-600 hover:underline mt-2">
+                     class="inline-flex items-center gap-1 font-bold text-xs text-emerald-600 hover:text-emerald-700 mt-2">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5 5 5M12 5v11"/>
@@ -933,8 +936,8 @@ export default async function initClassShowPage() {
             const teacherBtn = (currentRole === 'Teacher' || currentRole === 'Admin')
                 ? `<button data-review-id="${a.id}"
                        class="btn-review-submissions inline-flex items-center 
-                              px-3 py-2 bg-[#0e88d3] font-bold text-white rounded-lg text-xs
-                              hover:bg-black transition">
+                              px-3 py-2 bg-emerald-600 font-bold text-white rounded-lg text-xs
+                              hover:bg-emerald-700 transition">
                     View Submissions
                </button>`
                 : '';
@@ -1218,8 +1221,32 @@ export default async function initClassShowPage() {
                 loadAndRender();
             }
         }
+
+        if (target === 'exams') {
+            initExamsMarksTab({
+                classId,
+                currentRole,
+                apiRequest,
+                formatDateShort,
+                studentsList,     // 👈 ক্লাসের সব স্টুডেন্ট লিস্ট পাঠাচ্ছি
+            });
+        } 
         
+        if (target === 'posts') {
+            initChatsModule({
+                apiRequest,
+                classId,
+                currentUser,
+            });
+        }
         
+        if (target === 'members') {
+            initMembersModule({
+                apiRequest,
+                classId,
+                currentRole, // "Teacher" / "Student" / "Admin"
+            });
+        }
     }
 
     tabButtons.forEach(button => {
